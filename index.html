@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Healthcare Journey Guide</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #c4b5fd);
+      margin: 0; padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 20px 30px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #4f46e5;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      background: #4f46e5;
+      color: white;
+      font-size: 1.1rem;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #eef2ff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #333;
+    }
+    .info-box {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      color: #92400e;
+      font-weight: 600;
+    }
+    .footer-note {
+      margin-top: 25px;
+      font-size: 0.9rem;
+      color: #555;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Healthcare Journey</h1>
+    <label for="treatmentInput">Tell us about your treatment or referral</label>
+    <textarea id="treatmentInput" placeholder="e.g., I was referred to a cardiologist for chest pain..."></textarea>
+    <button id="generateBtn" disabled>Get My Step-by-Step Guide</button>
+
+    <div id="responseContainer" style="display:none;">
+      <div id="demoWarning" class="info-box" style="display:none;">
+        Demo Mode: Cannot connect to backend API. Showing sample response.
+      </div>
+      <pre id="responseText"></pre>
+      <button id="newSearchBtn" style="margin-top: 10px;">New Search</button>
+    </div>
+
+    <div class="footer-note">
+      <strong>Note:</strong> This timeline is an estimate and may vary based on your specific situation, insurance, and provider availability. Always follow your healthcare team's instructions.
+    </div>
+  </div>
+
+  <script>
+    const treatmentInput = document.getElementById('treatmentInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const responseContainer = document.getElementById('responseContainer');
+    const responseText = document.getElementById('responseText');
+    const demoWarning = document.getElementById('demoWarning');
+    const newSearchBtn = document.getElementById('newSearchBtn');
+
+    const mockResponse = `After a referral to a specialist, here's what usually happens:
+
+1. The specialist's office will contact you within 3-7 business days to schedule your appointment.
+2. You may receive paperwork to complete before your visit, including medical history forms.
+3. Your first appointment will typically last 45-60 minutes and include a thorough discussion of your symptoms.
+4. The specialist may order additional tests or lab work based on your condition.
+5. A treatment plan will be discussed, and follow-up appointments scheduled as needed.
+
+Remember to bring your insurance card, referral paperwork, a list of current medications, and any relevant medical records or test results.`;
+
+    treatmentInput.addEventListener('input', () => {
+      generateBtn.disabled = !treatmentInput.value.trim();
+    });
+
+    generateBtn.addEventListener('click', async () => {
+      const input = treatmentInput.value.trim();
+      if (!input) return;
+
+      generateBtn.disabled = true;
+      responseText.textContent = '';
+      demoWarning.style.display = 'none';
+
+      try {
+        const res = await fetch('http://localhost:8000/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_input: input })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          responseText.textContent = data.response || mockResponse;
+        } else {
+          demoWarning.style.display = 'block';
+          responseText.textContent = mockResponse;
+        }
+      } catch (error) {
+        demoWarning.style.display = 'block';
+        responseText.textContent = mockResponse;
+      }
+
+      responseContainer.style.display = 'block';
+      generateBtn.disabled = false;
+    });
+
+    newSearchBtn.addEventListener('click', () => {
+      treatmentInput.value = '';
+      responseContainer.style.display = 'none';
+      generateBtn.disabled = true;
+      demoWarning.style.display = 'none';
+      treatmentInput.focus();
+    });
+  </script>
+</body>
+</html>
+
